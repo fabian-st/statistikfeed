@@ -1,0 +1,13 @@
+{
+  "name": "statistikfeed",
+  "version": "1.0.0",
+  "description": "An RSS feed displaying the press releases on statistik.at.",
+  "license": "MIT",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "dependencies": {
+    "cheerio": "^1.0.0"
+  }
+}
