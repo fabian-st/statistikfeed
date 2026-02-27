@@ -47,6 +47,16 @@ ${itemsXml}
 }
 
 export default async function handler(req, res) {
+  const { max_days } = req.query;
+  let maxDays = null;
+  if (max_days !== undefined) {
+    maxDays = Number(max_days);
+    if (!Number.isInteger(maxDays) || maxDays < 1) {
+      res.status(400).send("max_days must be a positive integer");
+      return;
+    }
+  }
+
   const response = await fetch(SOURCE_URL);
   if (!response.ok) {
     res.status(502).send(`Failed to fetch source page (status: ${response.status})`);
@@ -55,7 +65,7 @@ export default async function handler(req, res) {
 
   const html = await response.text();
   const $ = cheerio.load(html);
-  const items = [];
+  let items = [];
 
   $("table.contenttable").each((_, table) => {
     $(table)
@@ -81,6 +91,13 @@ export default async function handler(req, res) {
   });
 
   items.sort((a, b) => b.date - a.date);
+
+  if (maxDays !== null) {
+    const cutoff = new Date();
+    cutoff.setUTCHours(0, 0, 0, 0);
+    cutoff.setUTCDate(cutoff.getUTCDate() - maxDays);
+    items = items.filter((item) => item.date >= cutoff);
+  }
 
   res.setHeader("Content-Type", "application/rss+xml; charset=utf-8");
   res.setHeader("Cache-Control", "s-maxage=3600, stale-while-revalidate");
